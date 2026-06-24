@@ -1,6 +1,6 @@
 function ThemeToggle() {
   return (
-    <button type="button" aria-label="Cambiar tema">
+    <button className="gs-btn gs-btn-secondary" type="button" aria-label="Cambiar tema">
       Tema
     </button>
   );

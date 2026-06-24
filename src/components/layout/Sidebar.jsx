@@ -5,12 +5,14 @@ function Sidebar({ role }) {
   const routes = ROLE_ROUTES[role] ?? [];
 
   return (
-    <aside className="border-b border-border p-4" data-layout="sidebar">
-      <strong>Grain Store</strong>
-      <span className="ml-2 text-sm text-muted-foreground">{ROLES[role]}</span>
-      <nav aria-label="Navegacion principal" className="mt-3 flex flex-wrap gap-2">
+    <aside className="gs-sidebar" data-layout="sidebar">
+      <div className="gs-sidebar-logo">
+        <strong className="gs-sidebar-title">Grain Store</strong>
+        <div className="gs-sidebar-label">{ROLES[role] ?? "Panel"}</div>
+      </div>
+      <nav aria-label="Navegacion principal" className="gs-sidebar-nav">
         {routes.map((route) => (
-          <NavLink className="text-sm text-foreground hover:text-primary" key={route.path} to={route.path}>
+          <NavLink className="gs-nav-link" key={route.path} to={route.path}>
             {route.label}
           </NavLink>
         ))}

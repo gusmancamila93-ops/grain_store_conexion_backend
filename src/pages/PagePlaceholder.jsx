@@ -1,11 +1,19 @@
 function PagePlaceholder({ title }) {
   return (
-    <section className="space-y-2">
-      <p className="text-sm text-muted-foreground">Base del proyecto</p>
-      <h1 className="text-2xl font-semibold text-foreground">{title}</h1>
-      <p className="text-muted-foreground">
-        Pagina reservada para la implementacion del modulo.
-      </p>
+    <section>
+      <div className="gs-page-header">
+        <div>
+          <p className="text-sm font-bold uppercase tracking-[0.12em] text-primary">
+            Base del proyecto
+          </p>
+          <h1 className="gs-page-title">{title}</h1>
+        </div>
+      </div>
+      <div className="gs-card gs-card-pad">
+        <p className="text-muted-foreground">
+          Pagina reservada para la implementacion del modulo.
+        </p>
+      </div>
     </section>
   );
 }

@@ -4,11 +4,11 @@ import Topbar from "@/components/layout/Topbar";
 
 function AppLayout({ role }) {
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="gs-app-shell">
       <Sidebar role={role} />
-      <div className="min-h-screen">
+      <div className="min-h-screen min-w-0">
         <Topbar role={role} />
-        <main className="p-6">
+        <main className="gs-content">
           <Outlet />
         </main>
       </div>

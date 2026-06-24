@@ -3,8 +3,10 @@ import ThemeToggle from "@/components/layout/ThemeToggle";
 
 function Topbar({ role }) {
   return (
-    <header className="flex items-center justify-between border-b border-border p-4" data-layout="topbar">
-      <span>{ROLES[role] ?? "Usuario"}</span>
+    <header className="gs-topbar" data-layout="topbar">
+      <span className="font-heading text-xl font-semibold uppercase text-foreground">
+        {ROLES[role] ?? "Usuario"}
+      </span>
       <ThemeToggle />
     </header>
   );
