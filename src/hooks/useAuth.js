@@ -1,3 +1,6 @@
 export function useAuth() {
-  return null;
+  return {
+    session: null,
+    isAuthenticated: false,
+  };
 }

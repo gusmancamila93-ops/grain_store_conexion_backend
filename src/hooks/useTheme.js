@@ -1,3 +1,5 @@
 export function useTheme() {
-  return null;
+  return {
+    theme: "light",
+  };
 }

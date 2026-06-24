@@ -1,10 +1,10 @@
-import { roles } from "@/app/routeConfig";
+import { ROLES } from "@/routes/routeConfig";
 import ThemeToggle from "@/components/layout/ThemeToggle";
 
 function Topbar({ role }) {
   return (
-    <header data-layout="topbar">
-      <span>{roles[role] ?? "Usuario"}</span>
+    <header className="flex items-center justify-between border-b border-border p-4" data-layout="topbar">
+      <span>{ROLES[role] ?? "Usuario"}</span>
       <ThemeToggle />
     </header>
   );
