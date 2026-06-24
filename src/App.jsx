@@ -1,11 +1,8 @@
-import { Button } from "@/components/ui/button";
+import { RouterProvider } from "react-router-dom";
+import { router } from "@/app/routes";
 
 function App() {
-  return (
-    <div className="p-8">
-      <Button>Grain Store</Button>
-    </div>
-  );
+  return <RouterProvider router={router} />;
 }
 
 export default App;

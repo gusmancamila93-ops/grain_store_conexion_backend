@@ -1,0 +1,3 @@
+export function idGenerator() {
+  return "";
+}
