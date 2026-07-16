@@ -5,6 +5,7 @@ export const STORAGE_KEYS = {
   productos: "productos_gs",
   ventas: "ventas",
   egresos: "egresos_gs",
+  session: "session_gs",
   theme: "theme",
   userPhoto: "userPhoto",
   perfil: "config_perfil",

@@ -1,6 +1,6 @@
-function FormCard({ title, icon, children, actions }) {
+function FormCard({ title, icon, children, actions, className = "" }) {
   return (
-    <section className="gs-card">
+    <section className={`gs-card ${className}`.trim()}>
       <header className="flex items-center gap-3 border-b border-border px-6 py-5">
         {icon ? (
           <span className="grid size-10 place-items-center rounded-full bg-primary text-primary-foreground">

@@ -4,35 +4,64 @@ export const ROLES = {
   contador: "Contador",
 };
 
+export const ROLE_PROFILE = {
+  admin: {
+    panelLabel: "Panel Administrador",
+    profileName: "Administrador",
+    profileRole: "Admin",
+    avatar: "A",
+  },
+  vendedor: {
+    panelLabel: "Panel Vendedor",
+    profileName: "Vendedor",
+    profileRole: "Ventas",
+    avatar: "V",
+  },
+  contador: {
+    panelLabel: "Panel Contador",
+    profileName: "Contador",
+    profileRole: "Finanzas",
+    avatar: "C",
+  },
+};
+
 export const PUBLIC_ROUTES = [
-  { path: "/login", label: "Iniciar sesion" },
+  { path: "/login", label: "Iniciar sesión" },
   { path: "/registro", label: "Registro" },
 ];
 
 export const ROLE_ROUTES = {
   admin: [
-    { path: "/admin/dashboard", label: "Dashboard" },
-    { path: "/admin/ventas", label: "Ventas" },
-    { path: "/admin/ventas/nueva", label: "Registro de venta" },
-    { path: "/admin/clientes", label: "Clientes" },
-    { path: "/admin/productos", label: "Productos" },
-    { path: "/admin/reportes", label: "Reportes" },
-    { path: "/admin/configuracion", label: "Configuracion" },
+    { path: "/admin/dashboard", label: "Dashboard", icon: "dashboard", group: "Principal" },
+    { path: "/admin/ventas", label: "Ventas", icon: "sales", group: "Principal" },
+    { path: "/admin/clientes", label: "Clientes", icon: "customers", group: "Gestión" },
+    { path: "/admin/productos", label: "Productos", icon: "products", group: "Gestión" },
+    { path: "/admin/egresos", label: "Egresos", icon: "expenses", group: "Gestión" },
+    { path: "/admin/reportes", label: "Reportes", icon: "reports", group: "Gestión" },
+    { path: "/admin/configuracion", label: "Configuración", icon: "settings", group: "Gestión" },
   ],
   vendedor: [
-    { path: "/vendedor/dashboard", label: "Dashboard" },
-    { path: "/vendedor/ventas", label: "Ventas" },
-    { path: "/vendedor/ventas/nueva", label: "Registro de venta" },
-    { path: "/vendedor/clientes", label: "Clientes" },
-    { path: "/vendedor/productos", label: "Productos" },
-    { path: "/vendedor/configuracion", label: "Configuracion" },
+    { path: "/vendedor/dashboard", label: "Dashboard", icon: "dashboard", group: "Principal" },
+    { path: "/vendedor/ventas", label: "Ventas", icon: "sales", group: "Principal" },
+    { path: "/vendedor/clientes", label: "Clientes", icon: "customers", group: "Gestión" },
+    { path: "/vendedor/productos", label: "Productos", icon: "products", group: "Gestión" },
   ],
   contador: [
-    { path: "/contador/dashboard", label: "Dashboard" },
-    { path: "/contador/clientes", label: "Clientes" },
-    { path: "/contador/reportes", label: "Reportes" },
-    { path: "/contador/configuracion", label: "Configuracion" },
+    { path: "/contador/dashboard", label: "Dashboard", icon: "dashboard", group: "Principal" },
+    { path: "/contador/clientes", label: "Clientes", icon: "customers", group: "Gestión" },
+    { path: "/contador/egresos", label: "Egresos", icon: "expenses", group: "Gestión" },
+    { path: "/contador/reportes", label: "Reportes", icon: "reports", group: "Gestión" },
+    { path: "/contador/configuracion", label: "Configuración", icon: "settings", group: "Gestión" },
   ],
 };
 
-export const DEFAULT_ROLE_PATH = "/admin/dashboard";
+export const ROLE_HOME = {
+  admin: "/admin/dashboard",
+  vendedor: "/vendedor/dashboard",
+  contador: "/contador/dashboard",
+};
+
+export const SETTINGS_TABS = {
+  admin: ["perfil", "sistema", "tienda", "usuarios"],
+  contador: ["perfil", "sistema", "tienda"],
+};

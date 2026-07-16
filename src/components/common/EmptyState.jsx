@@ -1,4 +1,4 @@
-function EmptyState({ icon, title = "Sin registros", message = "Aun no hay informacion disponible." }) {
+function EmptyState({ icon, title = "Sin registros", message = "Aún no hay información disponible." }) {
   return (
     <div className="grid min-h-40 place-items-center px-6 py-10 text-center">
       <div>

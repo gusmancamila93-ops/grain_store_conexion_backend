@@ -1,21 +1,23 @@
+import { X } from "lucide-react";
+
 function Modal({ open = false, title, children, footer, onClose }) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[300] grid place-items-center bg-black/55 p-4">
-      <section className="gs-card w-full max-w-[480px] p-8">
-        <header className="mb-6 flex items-center justify-between gap-4">
-          <h2 className="font-heading text-2xl font-bold uppercase text-foreground">
+    <div className="gs-modal-overlay">
+      <section className="gs-card gs-modal-panel">
+        <header className="gs-modal-header">
+          <h2 className="gs-modal-title">
             {title}
           </h2>
           {onClose ? (
-            <button className="gs-btn gs-btn-secondary min-h-9 px-4" type="button" onClick={onClose}>
-              Cerrar
+            <button className="gs-modal-close" type="button" onClick={onClose} aria-label="Cerrar modal">
+              <X size={18} />
             </button>
           ) : null}
         </header>
-        <div>{children}</div>
-        {footer ? <footer className="mt-6 flex justify-end gap-3">{footer}</footer> : null}
+        <div className="gs-modal-body">{children}</div>
+        {footer ? <footer className="gs-modal-footer">{footer}</footer> : null}
       </section>
     </div>
   );

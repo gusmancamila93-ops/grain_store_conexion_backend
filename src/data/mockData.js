@@ -1,1 +1,107 @@
-export const mockData = {};
+export const dashboardMock = {
+  admin: {
+    title: "Bienvenido, Administrador",
+    subtitle: "Resumen general de ventas, inventario y actividad reciente de Grain Store.",
+    stats: [
+      { label: "Ventas del Dia", value: 1280000, type: "currency", badge: "Hoy", icon: "sales", tone: "green" },
+      { label: "Productos Bajo Stock", value: 5, badge: "Alerta", icon: "stock", tone: "red" },
+      { label: "Ingresos Mensuales", value: 18450000, type: "currency", badge: "Mes", icon: "income", tone: "purple" },
+      { label: "Clientes Activos", value: 42, badge: "Total", icon: "customers", tone: "blue" },
+    ],
+    chartTitle: "Resumen de Actividad",
+    chartSeries: [
+      { label: "Ene", value: 45 },
+      { label: "Feb", value: 58 },
+      { label: "Mar", value: 52 },
+      { label: "Abr", value: 66 },
+      { label: "May", value: 74 },
+      { label: "Jun", value: 82 },
+      { label: "Jul", value: 78 },
+      { label: "Ago", value: 88 },
+      { label: "Sep", value: 92 },
+      { label: "Oct", value: 86 },
+      { label: "Nov", value: 94 },
+      { label: "Dic", value: 98 },
+    ],
+    indicators: [
+      { label: "Ventas registradas", value: "126", detail: "Operaciones del mes" },
+      { label: "Ticket promedio", value: "$146.429", detail: "Promedio por compra" },
+      { label: "Rotacion inventario", value: "Alta", detail: "Granos de mayor demanda" },
+    ],
+    tableTitle: "Movimientos Recientes",
+  },
+  vendedor: {
+    title: "Bienvenido, Vendedor",
+    subtitle: "Seguimiento de ventas personales, clientes atendidos y registros recientes.",
+    stats: [
+      { label: "Mis Ventas del Dia", value: 420000, type: "currency", badge: "Hoy", icon: "sales", tone: "green" },
+      { label: "Mis Ventas del Mes", value: 6200000, type: "currency", badge: "Mes", icon: "income", tone: "purple" },
+      { label: "Clientes Atendidos", value: 18, badge: "Total", icon: "customers", tone: "blue" },
+      { label: "Ventas Registradas", value: 31, badge: "Registros", icon: "receipt", tone: "orange" },
+    ],
+    chartTitle: "Mi Actividad de Ventas",
+    chartSeries: [
+      { label: "Ene", value: 28 },
+      { label: "Feb", value: 36 },
+      { label: "Mar", value: 42 },
+      { label: "Abr", value: 48 },
+      { label: "May", value: 46 },
+      { label: "Jun", value: 56 },
+      { label: "Jul", value: 60 },
+      { label: "Ago", value: 68 },
+      { label: "Sep", value: 64 },
+      { label: "Oct", value: 72 },
+      { label: "Nov", value: 76 },
+      { label: "Dic", value: 84 },
+    ],
+    indicators: [
+      { label: "Meta mensual", value: "78%", detail: "Avance estimado" },
+      { label: "Clientes nuevos", value: "6", detail: "Este mes" },
+      { label: "Producto lider", value: "Arroz", detail: "Mayor volumen" },
+    ],
+    tableTitle: "Mis Ventas Recientes",
+  },
+  contador: {
+    title: "Bienvenido, Contador",
+    subtitle: "Balance financiero simulado con ingresos, egresos y utilidad mensual.",
+    stats: [
+      { label: "Ingresos del Dia", value: 980000, type: "currency", badge: "Hoy", icon: "income", tone: "green" },
+      { label: "Ingresos del Mes", value: 18450000, type: "currency", badge: "Mes", icon: "sales", tone: "purple" },
+      { label: "Egresos del Mes", value: 7250000, type: "currency", badge: "Mes", icon: "expense", tone: "red" },
+      { label: "Utilidad del Mes", value: 11200000, type: "currency", badge: "Balance", icon: "balance", tone: "blue" },
+    ],
+    chartTitle: "Ingresos vs Egresos",
+    chartSeries: [
+      { label: "Ene", value: 40, secondary: 24 },
+      { label: "Feb", value: 48, secondary: 28 },
+      { label: "Mar", value: 52, secondary: 31 },
+      { label: "Abr", value: 61, secondary: 36 },
+      { label: "May", value: 66, secondary: 39 },
+      { label: "Jun", value: 70, secondary: 42 },
+      { label: "Jul", value: 74, secondary: 44 },
+      { label: "Ago", value: 82, secondary: 48 },
+      { label: "Sep", value: 86, secondary: 51 },
+      { label: "Oct", value: 80, secondary: 47 },
+      { label: "Nov", value: 90, secondary: 52 },
+      { label: "Dic", value: 96, secondary: 55 },
+    ],
+    indicators: [
+      { label: "Margen estimado", value: "61%", detail: "Utilidad sobre ingresos" },
+      { label: "Egresos fijos", value: "$4.2M", detail: "Servicios y compras" },
+      { label: "Cartera activa", value: "$2.8M", detail: "Clientes con saldo" },
+    ],
+    tableTitle: "Movimientos Recientes",
+  },
+};
+
+export const dashboardMovements = [
+  { id: "mov-1", date: "2026-06-24", customer: "Mercado El Trigal", amount: 248000 },
+  { id: "mov-2", date: "2026-06-24", customer: "Tienda San Jose", amount: 185500 },
+  { id: "mov-3", date: "2026-06-23", customer: "Distribuidora La Cosecha", amount: 612000 },
+  { id: "mov-4", date: "2026-06-23", customer: "Granero Central", amount: 324700 },
+];
+
+export const mockData = {
+  dashboard: dashboardMock,
+  movements: dashboardMovements,
+};

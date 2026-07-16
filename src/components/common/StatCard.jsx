@@ -1,6 +1,7 @@
-function StatCard({ label, value, icon, detail, tone = "default" }) {
+function StatCard({ label, value, icon, detail, badge, tone = "default" }) {
   return (
-    <article className="gs-card gs-card-pad" data-tone={tone}>
+    <article className="gs-card gs-card-pad gs-stat-card" data-tone={tone}>
+      {badge ? <span className="gs-card-badge">{badge}</span> : null}
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground">
@@ -11,7 +12,7 @@ function StatCard({ label, value, icon, detail, tone = "default" }) {
           </strong>
         </div>
         {icon ? (
-          <span className="grid size-11 place-items-center rounded-full bg-primary text-primary-foreground">
+          <span className="gs-stat-icon">
             {icon}
           </span>
         ) : null}
