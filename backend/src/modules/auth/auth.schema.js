@@ -12,7 +12,7 @@ export const loginSchema = z.object({
 export const updateMeSchema = z.object({
   body: z.object({
     name: z.string().trim().min(1).optional(),
-    phone: z.string().trim().optional(),
-    photo: z.string().optional(),
+    phone: z.string().trim().nullable().optional(),
+    photo: z.string().nullable().optional(),
   }),
 });

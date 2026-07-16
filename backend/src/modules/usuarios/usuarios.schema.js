@@ -20,7 +20,7 @@ export const updateUsuarioSchema = z.object({
     password: z.string().min(6).optional(),
     role: z.enum(ROLES).optional(),
     status: z.enum(USER_STATUSES).optional(),
-    phone: z.string().trim().optional(),
+    phone: z.string().trim().nullable().optional(),
   }),
 });
 

@@ -1,6 +1,6 @@
 import { Save, ShoppingCart } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import FormCard from "@/components/common/FormCard";
 import { clientesService } from "@/services/clientesService";
 import { productosService } from "@/services/productosService";
@@ -18,6 +18,7 @@ const EMPTY_FORM = {
 
 function NewSalePage() {
   const navigate = useNavigate();
+  const { role } = useOutletContext();
   const [customers, setCustomers] = useState([]);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -75,7 +76,7 @@ function NewSalePage() {
         },
       ],
     });
-    navigate("..", { replace: true });
+    navigate(`/${role}/ventas`, { replace: true });
   }
 
   if (loading) {
