@@ -5,11 +5,11 @@ import { hashPassword } from "#utils/password.js";
 function toPublicUsuario(usuario) {
   return {
     id: usuario.id,
-    nombre: usuario.nombre,
-    correo: usuario.correo,
-    rol: usuario.rol,
-    estado: usuario.estado,
-    telefono: usuario.telefono,
+    name: usuario.nombre,
+    email: usuario.correo,
+    role: usuario.rol,
+    status: usuario.estado,
+    phone: usuario.telefono,
   };
 }
 
@@ -22,12 +22,12 @@ async function create(data) {
   const passwordHash = await hashPassword(data.password);
   const usuario = await prisma.usuario.create({
     data: {
-      nombre: data.nombre,
-      correo: data.correo,
+      nombre: data.name,
+      correo: data.email,
       passwordHash,
-      rol: data.rol,
-      estado: data.estado,
-      telefono: data.telefono,
+      rol: data.role,
+      estado: data.status,
+      telefono: data.phone,
     },
   });
   return toPublicUsuario(usuario);
@@ -44,11 +44,11 @@ async function update(id, data) {
   const usuario = await prisma.usuario.update({
     where: { id },
     data: {
-      nombre: data.nombre,
-      correo: data.correo,
-      rol: data.rol,
-      estado: data.estado,
-      telefono: data.telefono,
+      nombre: data.name,
+      correo: data.email,
+      rol: data.role,
+      estado: data.status,
+      telefono: data.phone,
       passwordHash,
     },
   });

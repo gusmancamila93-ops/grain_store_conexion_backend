@@ -14,15 +14,51 @@ const DEFAULT_TIENDA = {
   modoVisual: "Claro / Oscuro",
 };
 
-async function getTienda() {
+function toPublicTienda(row) {
+  return {
+    company: {
+      name: row.nombre,
+      nit: row.nit,
+      address: row.direccion,
+      phone: row.telefono,
+      email: row.correo,
+    },
+    preferences: {
+      currency: row.moneda,
+      dashboardDensity: row.densidadDashboard,
+      lowStockAlert: row.alertaStockBajo,
+      visualMode: row.modoVisual,
+    },
+  };
+}
+
+async function getRow() {
   const tienda = await prisma.configuracionTienda.findUnique({ where: { id: 1 } });
   if (tienda) return tienda;
   return prisma.configuracionTienda.create({ data: DEFAULT_TIENDA });
 }
 
-async function updateTienda(data) {
-  await getTienda();
-  return prisma.configuracionTienda.update({ where: { id: 1 }, data });
+async function getTienda() {
+  return toPublicTienda(await getRow());
+}
+
+async function updateTienda({ company, preferences }) {
+  await getRow();
+  const tienda = await prisma.configuracionTienda.update({
+    where: { id: 1 },
+    data: {
+      nombre: company?.name,
+      nit: company?.nit,
+      direccion: company?.address,
+      telefono: company?.phone,
+      correo: company?.email,
+      moneda: preferences?.currency,
+      densidadDashboard: preferences?.dashboardDensity,
+      alertaStockBajo: preferences?.lowStockAlert,
+      modoVisual: preferences?.visualMode,
+    },
+  });
+  return toPublicTienda(tienda);
 }
 
 function getSistema() {

@@ -6,19 +6,19 @@ import { signToken } from "#utils/jwt.js";
 function toPublicUser(usuario) {
   return {
     id: usuario.id,
-    nombre: usuario.nombre,
-    correo: usuario.correo,
-    rol: usuario.rol,
-    estado: usuario.estado,
-    telefono: usuario.telefono,
-    foto: usuario.foto,
+    name: usuario.nombre,
+    email: usuario.correo,
+    role: usuario.rol,
+    status: usuario.estado,
+    phone: usuario.telefono,
+    photo: usuario.foto,
   };
 }
 
-async function login({ correo, password, rol }) {
-  const usuario = await prisma.usuario.findUnique({ where: { correo } });
+async function login({ email, password, role }) {
+  const usuario = await prisma.usuario.findUnique({ where: { correo: email } });
 
-  if (!usuario || usuario.rol !== rol) {
+  if (!usuario || usuario.rol !== role) {
     throw ApiError.unauthorized("Credenciales inválidas para el rol seleccionado.");
   }
 
@@ -31,7 +31,7 @@ async function login({ correo, password, rol }) {
     throw ApiError.unauthorized("Credenciales inválidas para el rol seleccionado.");
   }
 
-  const token = signToken(usuario);
+  const token = signToken({ id: usuario.id, rol: usuario.rol, nombre: usuario.nombre });
   return { token, user: toPublicUser(usuario) };
 }
 
@@ -47,9 +47,9 @@ async function updateMe(userId, data) {
   const usuario = await prisma.usuario.update({
     where: { id: userId },
     data: {
-      nombre: data.nombre,
-      telefono: data.telefono,
-      foto: data.foto,
+      nombre: data.name,
+      telefono: data.phone,
+      foto: data.photo,
     },
   });
   return toPublicUser(usuario);

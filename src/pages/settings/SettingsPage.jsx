@@ -1,12 +1,14 @@
 import { Camera, Edit3, Plus, Settings, Store, SlidersHorizontal, Trash2, User, Users } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import FormCard from "@/components/common/FormCard";
 import Modal from "@/components/common/Modal";
 import Tabs from "@/components/common/Tabs";
 import TableCard from "@/components/common/TableCard";
+import { authService } from "@/services/authService";
 import { configService } from "@/services/configService";
 import { usuariosService } from "@/services/usuariosService";
+import { useAuth } from "@/hooks/useAuth";
 import { ROLES, SETTINGS_TABS } from "@/routes/routeConfig";
 
 const TAB_META = {
@@ -19,7 +21,9 @@ const TAB_META = {
 const EMPTY_USER = {
   email: "",
   name: "",
-  role: "Vendedor",
+  password: "",
+  phone: "",
+  role: "vendedor",
   status: "Activo",
 };
 
@@ -50,7 +54,7 @@ function ConfigFields({ data, group, onChange, readOnly = false, exclude = [] })
             name={key}
             onChange={(event) => onChange?.(group, key, event.target.value)}
             readOnly={readOnly}
-            value={value}
+            value={value ?? ""}
           />
         </label>
       ))}
@@ -58,7 +62,7 @@ function ConfigFields({ data, group, onChange, readOnly = false, exclude = [] })
   );
 }
 
-function UserForm({ form, onChange }) {
+function UserForm({ form, onChange, requirePassword = false }) {
   return (
     <div className="gs-product-form">
       <label className="gs-field">
@@ -70,11 +74,23 @@ function UserForm({ form, onChange }) {
         <input className="gs-input" name="email" onChange={onChange} required type="email" value={form.email} />
       </label>
       <label className="gs-field">
+        <span>{requirePassword ? "Contraseña *" : "Contraseña (dejar en blanco para no cambiar)"}</span>
+        <input
+          className="gs-input"
+          name="password"
+          onChange={onChange}
+          placeholder={requirePassword ? "Mínimo 6 caracteres" : "••••••"}
+          required={requirePassword}
+          type="password"
+          value={form.password ?? ""}
+        />
+      </label>
+      <label className="gs-field">
         <span>Rol</span>
         <select className="gs-input" name="role" onChange={onChange} value={form.role}>
-          <option value="Administrador">Administrador</option>
-          <option value="Vendedor">Vendedor</option>
-          <option value="Contador">Contador</option>
+          {Object.entries(ROLES).map(([value, label]) => (
+            <option key={value} value={value}>{label}</option>
+          ))}
         </select>
       </label>
       <label className="gs-field">
@@ -90,29 +106,48 @@ function UserForm({ form, onChange }) {
 
 function SettingsPage() {
   const { role } = useOutletContext();
+  const auth = useAuth();
   const roleLabel = ROLES[role] ?? role;
   const tabs = useMemo(
     () => (SETTINGS_TABS[role] ?? []).map((id) => ({ id, ...TAB_META[id] })),
     [role],
   );
   const [activeTab, setActiveTab] = useState(tabs[0]?.id ?? "perfil");
-  const [config, setConfig] = useState(() => configService.readConfig());
-  const [profileDraft, setProfileDraft] = useState(() => configService.readConfig().profile);
-  const [storeDraft, setStoreDraft] = useState(() => {
-    const initialConfig = configService.readConfig();
-    return {
-      company: initialConfig.company,
-      preferences: initialConfig.preferences,
-    };
-  });
-  const [users, setUsers] = useState(() => usuariosService.readUsers());
+
+  const [loading, setLoading] = useState(true);
+  const [profileDraft, setProfileDraft] = useState(null);
+  const [savedProfile, setSavedProfile] = useState(null);
+  const [storeDraft, setStoreDraft] = useState(null);
+  const [savedStore, setSavedStore] = useState(null);
+  const [system, setSystem] = useState(null);
+  const [users, setUsers] = useState([]);
   const [userForm, setUserForm] = useState(EMPTY_USER);
   const [editingUser, setEditingUser] = useState(null);
 
-  function persistConfig(nextConfig) {
-    configService.saveConfig(nextConfig);
-    setConfig(nextConfig);
-  }
+  useEffect(() => {
+    let active = true;
+    const isAdmin = role === "admin";
+
+    Promise.all([
+      authService.getProfile(),
+      configService.getTienda(),
+      configService.getSistema(),
+      isAdmin ? usuariosService.readUsers() : Promise.resolve([]),
+    ]).then(([profile, tienda, sistema, usuarios]) => {
+      if (!active) return;
+      setProfileDraft(profile);
+      setSavedProfile(profile);
+      setStoreDraft(tienda);
+      setSavedStore(tienda);
+      setSystem(sistema);
+      setUsers(usuarios);
+      setLoading(false);
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [role]);
 
   function updateProfileDraft(_group, key, value) {
     setProfileDraft((current) => ({ ...current, [key]: value }));
@@ -125,29 +160,34 @@ function SettingsPage() {
     }));
   }
 
-  function saveProfile(event) {
+  async function saveProfile(event) {
     event.preventDefault();
-    persistConfig({ ...config, profile: profileDraft });
+    const updated = await authService.updateProfile({
+      name: profileDraft.name,
+      phone: profileDraft.phone,
+      photo: profileDraft.photo,
+    });
+    setProfileDraft(updated);
+    setSavedProfile(updated);
+    auth.updateProfile({ name: updated.name, photo: updated.photo, phone: updated.phone });
   }
 
   function cancelProfile() {
-    setProfileDraft(config.profile);
+    setProfileDraft(savedProfile);
   }
 
-  function saveStore(event) {
+  async function saveStore(event) {
     event.preventDefault();
-    persistConfig({
-      ...config,
+    const updated = await configService.updateTienda({
       company: storeDraft.company,
       preferences: storeDraft.preferences,
     });
+    setStoreDraft(updated);
+    setSavedStore(updated);
   }
 
   function cancelStore() {
-    setStoreDraft({
-      company: config.company,
-      preferences: config.preferences,
-    });
+    setStoreDraft(savedStore);
   }
 
   function handlePhotoChange(event) {
@@ -171,20 +211,23 @@ function SettingsPage() {
     setEditingUser((current) => ({ ...current, [name]: value }));
   }
 
-  function createUser(event) {
+  async function createUser(event) {
     event.preventDefault();
-    setUsers(usuariosService.createUser(userForm));
+    const created = await usuariosService.createUser(userForm);
+    setUsers((current) => [created, ...current]);
     setUserForm(EMPTY_USER);
   }
 
-  function saveUser(event) {
+  async function saveUser(event) {
     event.preventDefault();
-    setUsers(usuariosService.updateUser(editingUser.id, editingUser));
+    const updated = await usuariosService.updateUser(editingUser.id, editingUser);
+    setUsers((current) => current.map((user) => (user.id === updated.id ? updated : user)));
     setEditingUser(null);
   }
 
-  function deleteUser(userId) {
-    setUsers(usuariosService.deleteUser(userId));
+  async function deleteUser(userId) {
+    await usuariosService.deleteUser(userId);
+    setUsers((current) => current.filter((user) => user.id !== userId));
   }
 
   function renderTab() {
@@ -206,7 +249,11 @@ function SettingsPage() {
                   <input accept="image/*" onChange={handlePhotoChange} type="file" />
                 </label>
               </div>
-              <ConfigFields data={profileDraft} exclude={["photo"]} group="profile" onChange={updateProfileDraft} />
+              <ConfigFields
+                data={{ name: profileDraft.name, email: profileDraft.email, phone: profileDraft.phone }}
+                group="profile"
+                onChange={updateProfileDraft}
+              />
             </div>
             <div className="gs-form-actions gs-settings-actions">
               <button className="gs-btn gs-btn-primary" type="submit">Guardar cambios</button>
@@ -220,7 +267,7 @@ function SettingsPage() {
     if (activeTab === "sistema") {
       return (
         <FormCard className="gs-product-create-card" icon={<SlidersHorizontal size={20} />} title="Preferencias del sistema">
-          <ConfigFields data={config.system} group="system" readOnly />
+          <ConfigFields data={system} group="system" readOnly />
         </FormCard>
       );
     }
@@ -249,7 +296,7 @@ function SettingsPage() {
       <div className="gs-users-settings-section">
         <FormCard className="gs-product-create-card gs-user-create-card" icon={<Users size={20} />} title="Crear Usuario">
           <form className="gs-product-form-shell" onSubmit={createUser}>
-            <UserForm form={userForm} onChange={updateUserForm} />
+            <UserForm form={userForm} onChange={updateUserForm} requirePassword />
             <div className="gs-form-actions">
               <button className="gs-btn gs-btn-primary" type="submit">
                 <Plus size={17} /> Crear Usuario
@@ -270,11 +317,11 @@ function SettingsPage() {
             <>
               <td><strong className="text-foreground">{user.name}</strong></td>
               <td className="text-muted-foreground">{user.email}</td>
-              <td className="text-muted-foreground">{user.role}</td>
+              <td className="text-muted-foreground">{ROLES[user.role] ?? user.role}</td>
               <td><span className={`gs-customer-status ${user.status.toLowerCase()}`}>{user.status}</span></td>
               <td>
                 <div className="gs-row-actions">
-                  <button className="gs-action-btn edit" onClick={() => setEditingUser(user)} type="button">
+                  <button className="gs-action-btn edit" onClick={() => setEditingUser({ ...user, password: "" })} type="button">
                     <Edit3 size={16} />
                   </button>
                   <button className="gs-action-btn delete" onClick={() => deleteUser(user.id)} type="button">
@@ -304,7 +351,13 @@ function SettingsPage() {
         </div>
       </div>
       <Tabs activeTab={activeTab} onChange={setActiveTab} tabs={tabs} />
-      {renderTab()}
+      {loading ? (
+        <div className="gs-card gs-card-pad">
+          <p className="text-muted-foreground">Cargando configuración...</p>
+        </div>
+      ) : (
+        renderTab()
+      )}
 
       <Modal
         footer={

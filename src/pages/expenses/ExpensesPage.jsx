@@ -1,5 +1,5 @@
 import { CircleMinus, Edit3, Filter, Plus, Search, Trash2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import EmptyState from "@/components/common/EmptyState";
 import FormCard from "@/components/common/FormCard";
 import Modal from "@/components/common/Modal";
@@ -55,11 +55,24 @@ function ExpenseForm({ form, onChange }) {
 }
 
 function ExpensesPage() {
-  const [expenses, setExpenses] = useState(() => egresosService.readExpenses());
+  const [expenses, setExpenses] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [form, setForm] = useState(EMPTY_FORM);
   const [editingExpense, setEditingExpense] = useState(null);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("Todas");
+
+  useEffect(() => {
+    let active = true;
+    egresosService.readExpenses().then((data) => {
+      if (!active) return;
+      setExpenses(data);
+      setLoading(false);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const stats = useMemo(() => {
     const total = expenses.reduce((sum, expense) => sum + Number(expense.value), 0);
@@ -92,20 +105,26 @@ function ExpensesPage() {
     setEditingExpense((current) => ({ ...current, [name]: value }));
   }
 
-  function createExpense(event) {
+  async function createExpense(event) {
     event.preventDefault();
-    setExpenses(egresosService.createExpense({ ...form, value: Number(form.value) }));
+    const created = await egresosService.createExpense({ ...form, value: Number(form.value) });
+    setExpenses((current) => [created, ...current]);
     setForm(EMPTY_FORM);
   }
 
-  function saveExpense(event) {
+  async function saveExpense(event) {
     event.preventDefault();
-    setExpenses(egresosService.updateExpense(editingExpense.id, { ...editingExpense, value: Number(editingExpense.value) }));
+    const updated = await egresosService.updateExpense(editingExpense.id, {
+      ...editingExpense,
+      value: Number(editingExpense.value),
+    });
+    setExpenses((current) => current.map((expense) => (expense.id === updated.id ? updated : expense)));
     setEditingExpense(null);
   }
 
-  function deleteExpense(expenseId) {
-    setExpenses(egresosService.deleteExpense(expenseId));
+  async function deleteExpense(expenseId) {
+    await egresosService.deleteExpense(expenseId);
+    setExpenses((current) => current.filter((expense) => expense.id !== expenseId));
   }
 
   return (
@@ -154,7 +173,11 @@ function ExpensesPage() {
         </div>
       </div>
 
-      {expenses.length ? (
+      {loading ? (
+        <div className="gs-card gs-card-pad">
+          <p className="text-muted-foreground">Cargando egresos...</p>
+        </div>
+      ) : expenses.length ? (
         <TableCard
           columns={[
             { key: "code", label: "Código" },

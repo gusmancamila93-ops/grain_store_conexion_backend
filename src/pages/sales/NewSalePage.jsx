@@ -1,5 +1,5 @@
 import { Save, ShoppingCart } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import FormCard from "@/components/common/FormCard";
 import { clientesService } from "@/services/clientesService";
@@ -7,10 +7,10 @@ import { productosService } from "@/services/productosService";
 import { ventasService } from "@/services/ventasService";
 
 const EMPTY_FORM = {
-  customer: "",
+  customerId: "",
   date: new Date().toISOString().slice(0, 10),
   paymentMethod: "Contado",
-  product: "",
+  productId: "",
   quantity: 1,
   status: "Pagada",
   unitPrice: 0,
@@ -18,41 +18,74 @@ const EMPTY_FORM = {
 
 function NewSalePage() {
   const navigate = useNavigate();
-  const customers = clientesService.readCustomers();
-  const products = productosService.readProducts();
-  const [form, setForm] = useState(() => ({
-    ...EMPTY_FORM,
-    customer: customers[0]?.name ?? "",
-    product: products[0]?.name ?? "",
-    unitPrice: products[0]?.price ?? 0,
-  }));
+  const [customers, setCustomers] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [form, setForm] = useState(EMPTY_FORM);
+
+  useEffect(() => {
+    let active = true;
+    Promise.all([clientesService.readCustomers(), productosService.readProducts()]).then(
+      ([customersData, productsData]) => {
+        if (!active) return;
+        setCustomers(customersData);
+        setProducts(productsData);
+        setForm((current) => ({
+          ...current,
+          customerId: customersData[0]?.id ?? "",
+          productId: productsData[0]?.id ?? "",
+          unitPrice: productsData[0]?.price ?? 0,
+        }));
+        setLoading(false);
+      },
+    );
+    return () => {
+      active = false;
+    };
+  }, []);
 
   function updateForm(event) {
     const { name, value } = event.target;
     setForm((current) => {
-      if (name === "product") {
-        const product = products.find((item) => item.name === value);
-        return { ...current, product: value, unitPrice: product?.price ?? current.unitPrice };
+      if (name === "productId") {
+        const product = products.find((item) => item.id === Number(value));
+        return { ...current, productId: Number(value), unitPrice: product?.price ?? current.unitPrice };
+      }
+
+      if (name === "customerId") {
+        return { ...current, customerId: Number(value) };
       }
 
       return { ...current, [name]: value };
     });
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
-    ventasService.createSale({
-      ...form,
-      code: `VEN-${Date.now().toString().slice(-5)}`,
+    await ventasService.createSale({
+      customerId: Number(form.customerId),
+      date: form.date,
+      paymentMethod: form.paymentMethod,
+      status: form.status,
       items: [
         {
-          product: form.product,
+          productId: Number(form.productId),
           quantity: Number(form.quantity),
           unitPrice: Number(form.unitPrice),
         },
       ],
     });
     navigate("..", { replace: true });
+  }
+
+  if (loading) {
+    return (
+      <section className="gs-module-page">
+        <div className="gs-card gs-card-pad">
+          <p className="text-muted-foreground">Cargando formulario...</p>
+        </div>
+      </section>
+    );
   }
 
   return (
@@ -71,9 +104,9 @@ function NewSalePage() {
           <div className="gs-product-form">
             <label className="gs-field">
               <span>Cliente *</span>
-              <select className="gs-input" name="customer" onChange={updateForm} value={form.customer}>
+              <select className="gs-input" name="customerId" onChange={updateForm} value={form.customerId}>
                 {customers.map((customer) => (
-                  <option key={customer.id} value={customer.name}>{customer.name}</option>
+                  <option key={customer.id} value={customer.id}>{customer.name}</option>
                 ))}
               </select>
             </label>
@@ -97,9 +130,9 @@ function NewSalePage() {
             </label>
             <label className="gs-field">
               <span>Producto *</span>
-              <select className="gs-input" name="product" onChange={updateForm} value={form.product}>
+              <select className="gs-input" name="productId" onChange={updateForm} value={form.productId}>
                 {products.map((product) => (
-                  <option key={product.id} value={product.name}>{product.name}</option>
+                  <option key={product.id} value={product.id}>{product.name}</option>
                 ))}
               </select>
             </label>

@@ -42,11 +42,11 @@ function LoginPage() {
     setError("");
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
 
     try {
-      const nextSession = login(form);
+      const nextSession = await login(form);
       navigate(ROLE_HOME[nextSession.role], { replace: true });
     } catch (loginError) {
       setError(loginError.message);

@@ -1,5 +1,5 @@
 import { Eye, Plus, Search, ShoppingCart, Trash2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import EmptyState from "@/components/common/EmptyState";
 import Modal from "@/components/common/Modal";
@@ -17,10 +17,23 @@ function SaleStatus({ status }) {
 }
 
 function SalesPage() {
-  const [sales, setSales] = useState(() => ventasService.readSales());
+  const [sales, setSales] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [selectedSale, setSelectedSale] = useState(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("Todos");
+
+  useEffect(() => {
+    let active = true;
+    ventasService.readSales().then((data) => {
+      if (!active) return;
+      setSales(data);
+      setLoading(false);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const stats = useMemo(() => {
     const paidSales = sales.filter((sale) => sale.status === "Pagada");
@@ -41,8 +54,14 @@ function SalesPage() {
     });
   }, [sales, search, statusFilter]);
 
-  function handleDelete(saleId) {
-    setSales(ventasService.deleteSale(saleId));
+  async function handleDelete(saleId) {
+    await ventasService.deleteSale(saleId);
+    setSales((current) => current.filter((sale) => sale.id !== saleId));
+  }
+
+  async function handleViewDetail(saleId) {
+    const detail = await ventasService.getSaleById(saleId);
+    setSelectedSale(detail);
   }
 
   return (
@@ -86,7 +105,11 @@ function SalesPage() {
         </div>
       </div>
 
-      {sales.length ? (
+      {loading ? (
+        <div className="gs-card gs-card-pad">
+          <p className="text-muted-foreground">Cargando ventas...</p>
+        </div>
+      ) : sales.length ? (
         <TableCard
           columns={[
             { key: "code", label: "Código" },
@@ -111,7 +134,7 @@ function SalesPage() {
                   <button
                     aria-label={`Ver detalle ${sale.code}`}
                     className="gs-action-btn view"
-                    onClick={() => setSelectedSale(sale)}
+                    onClick={() => handleViewDetail(sale.id)}
                     type="button"
                   >
                     <Eye size={16} />

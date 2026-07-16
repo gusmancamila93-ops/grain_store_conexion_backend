@@ -8,11 +8,12 @@ import {
   TrendingUp,
   Users,
 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import ChartCard from "@/components/common/ChartCard";
 import StatCard from "@/components/common/StatCard";
 import TableCard from "@/components/common/TableCard";
-import { dashboardMock, dashboardMovements } from "@/data/mockData";
+import { dashboardService } from "@/services/dashboardService";
 import { formatCurrency } from "@/utils/formatCurrency";
 import { formatDate } from "@/utils/formatDate";
 
@@ -60,7 +61,28 @@ function DashboardBars({ data, dual = false }) {
 
 function DashboardPage() {
   const { role } = useOutletContext();
-  const dashboard = dashboardMock[role] ?? dashboardMock.admin;
+  const [dashboard, setDashboard] = useState(null);
+
+  useEffect(() => {
+    let active = true;
+    dashboardService.getDashboard().then((data) => {
+      if (active) setDashboard(data);
+    });
+    return () => {
+      active = false;
+    };
+  }, [role]);
+
+  if (!dashboard) {
+    return (
+      <section className="gs-dashboard">
+        <div className="gs-card gs-card-pad">
+          <p className="text-muted-foreground">Cargando panel...</p>
+        </div>
+      </section>
+    );
+  }
+
   const isAccounting = role === "contador";
 
   return (
@@ -142,7 +164,7 @@ function DashboardPage() {
               </td>
             </>
           )}
-          rows={dashboardMovements}
+          rows={dashboard.movements ?? []}
           title={dashboard.tableTitle}
         />
       </div>

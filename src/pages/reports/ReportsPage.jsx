@@ -1,4 +1,5 @@
 import { BarChart3, CircleDollarSign, TrendingDown, TrendingUp, Users } from "lucide-react";
+import { useEffect, useState } from "react";
 import ChartCard from "@/components/common/ChartCard";
 import StatCard from "@/components/common/StatCard";
 import TableCard from "@/components/common/TableCard";
@@ -12,8 +13,29 @@ function formatReportValue(stat) {
 }
 
 function ReportsPage() {
-  const reports = reportesService.getReports();
-  const max = Math.max(...reports.monthly.flatMap((item) => [item.income, item.expenses]));
+  const [reports, setReports] = useState(null);
+
+  useEffect(() => {
+    let active = true;
+    reportesService.getReports().then((data) => {
+      if (active) setReports(data);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  if (!reports) {
+    return (
+      <section className="gs-module-page">
+        <div className="gs-card gs-card-pad">
+          <p className="text-muted-foreground">Cargando reportes...</p>
+        </div>
+      </section>
+    );
+  }
+
+  const max = Math.max(...reports.monthly.flatMap((item) => [item.income, item.expenses]), 1);
   const computedStats = [
     { label: "Ingresos", value: reports.totals.income, type: "currency", badge: "Pagado", tone: "green" },
     { label: "Egresos", value: reports.totals.expenses, type: "currency", badge: "Periodo", tone: "red" },
@@ -131,10 +153,10 @@ function ReportsPage() {
           renderRow={(item) => (
             <>
               <td className="font-bold text-primary">{item.label}</td>
-              <td>{formatCurrency(item.income * 1000000)}</td>
-              <td className="text-muted-foreground">{formatCurrency(item.expenses * 1000000)}</td>
+              <td>{formatCurrency(item.income)}</td>
+              <td className="text-muted-foreground">{formatCurrency(item.expenses)}</td>
               <td className="font-heading text-lg font-bold text-foreground">
-                {formatCurrency((item.income - item.expenses) * 1000000)}
+                {formatCurrency(item.income - item.expenses)}
               </td>
             </>
           )}

@@ -1,5 +1,5 @@
 import { Edit3, Filter, Plus, Search, Trash2, UserPlus, Users } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import EmptyState from "@/components/common/EmptyState";
 import FormCard from "@/components/common/FormCard";
 import Modal from "@/components/common/Modal";
@@ -109,12 +109,25 @@ function CustomerStatus({ status }) {
 }
 
 function CustomersPage() {
-  const [customers, setCustomers] = useState(() => clientesService.readCustomers());
+  const [customers, setCustomers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [createForm, setCreateForm] = useState(EMPTY_FORM);
   const [editingCustomer, setEditingCustomer] = useState(null);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("Todos");
   const [statusFilter, setStatusFilter] = useState("Todos");
+
+  useEffect(() => {
+    let active = true;
+    clientesService.readCustomers().then((data) => {
+      if (!active) return;
+      setCustomers(data);
+      setLoading(false);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const stats = useMemo(() => {
     const active = customers.filter((customer) => customer.status === "Activo").length;
@@ -152,23 +165,23 @@ function CustomersPage() {
     setEditingCustomer((current) => ({ ...current, [name]: value }));
   }
 
-  function handleCreate(event) {
+  async function handleCreate(event) {
     event.preventDefault();
-    const nextCustomers = clientesService.createCustomer(createForm);
-    setCustomers(nextCustomers);
+    const created = await clientesService.createCustomer(createForm);
+    setCustomers((current) => [created, ...current]);
     setCreateForm(EMPTY_FORM);
   }
 
-  function handleEdit(event) {
+  async function handleEdit(event) {
     event.preventDefault();
-    const nextCustomers = clientesService.updateCustomer(editingCustomer.id, editingCustomer);
-    setCustomers(nextCustomers);
+    const updated = await clientesService.updateCustomer(editingCustomer.id, editingCustomer);
+    setCustomers((current) => current.map((customer) => (customer.id === updated.id ? updated : customer)));
     setEditingCustomer(null);
   }
 
-  function handleDelete(customerId) {
-    const nextCustomers = clientesService.deleteCustomer(customerId);
-    setCustomers(nextCustomers);
+  async function handleDelete(customerId) {
+    await clientesService.deleteCustomer(customerId);
+    setCustomers((current) => current.filter((customer) => customer.id !== customerId));
   }
 
   return (
@@ -242,7 +255,11 @@ function CustomersPage() {
         </div>
       </div>
 
-      {customers.length ? (
+      {loading ? (
+        <div className="gs-card gs-card-pad">
+          <p className="text-muted-foreground">Cargando clientes...</p>
+        </div>
+      ) : customers.length ? (
         <TableCard
           columns={[
             { key: "document", label: "Documento / NIT" },

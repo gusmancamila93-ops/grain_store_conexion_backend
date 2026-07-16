@@ -8,14 +8,21 @@ export function AuthProvider({ children }) {
   const value = useMemo(
     () => ({
       isAuthenticated: Boolean(session),
-      login(credentials) {
-        const nextSession = authService.login(credentials);
+      async login(credentials) {
+        const nextSession = await authService.login(credentials);
         setSession(nextSession);
         return nextSession;
       },
       logout() {
         authService.logout();
         setSession(null);
+      },
+      updateProfile(patch) {
+        setSession((current) => {
+          const next = { ...current, ...patch };
+          authService.saveSession(next);
+          return next;
+        });
       },
       session,
     }),

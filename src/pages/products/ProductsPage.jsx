@@ -1,5 +1,5 @@
 import { Edit3, Filter, PackagePlus, Plus, Search, Trash2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import EmptyState from "@/components/common/EmptyState";
 import FormCard from "@/components/common/FormCard";
 import Modal from "@/components/common/Modal";
@@ -128,12 +128,25 @@ function StatusBadge({ status }) {
 }
 
 function ProductsPage() {
-  const [products, setProducts] = useState(() => productosService.readProducts());
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [createForm, setCreateForm] = useState(EMPTY_FORM);
   const [editingProduct, setEditingProduct] = useState(null);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("Todas");
   const [statusFilter, setStatusFilter] = useState("Todos");
+
+  useEffect(() => {
+    let active = true;
+    productosService.readProducts().then((data) => {
+      if (!active) return;
+      setProducts(data);
+      setLoading(false);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const stats = useMemo(() => {
     const normal = products.filter((product) => productosService.getStatus(product) === "Normal").length;
@@ -170,26 +183,26 @@ function ProductsPage() {
     setEditingProduct((current) => ({ ...current, [name]: value }));
   }
 
-  function handleCreate(event) {
+  async function handleCreate(event) {
     event.preventDefault();
-    const nextProducts = productosService.createProduct(normalizeProduct(createForm));
-    setProducts(nextProducts);
+    const created = await productosService.createProduct(normalizeProduct(createForm));
+    setProducts((current) => [created, ...current]);
     setCreateForm(EMPTY_FORM);
   }
 
-  function handleEdit(event) {
+  async function handleEdit(event) {
     event.preventDefault();
-    const nextProducts = productosService.updateProduct(
+    const updated = await productosService.updateProduct(
       editingProduct.id,
       normalizeProduct(editingProduct),
     );
-    setProducts(nextProducts);
+    setProducts((current) => current.map((product) => (product.id === updated.id ? updated : product)));
     setEditingProduct(null);
   }
 
-  function handleDelete(productId) {
-    const nextProducts = productosService.deleteProduct(productId);
-    setProducts(nextProducts);
+  async function handleDelete(productId) {
+    await productosService.deleteProduct(productId);
+    setProducts((current) => current.filter((product) => product.id !== productId));
   }
 
   return (
@@ -268,7 +281,11 @@ function ProductsPage() {
 
       </div>
 
-      {products.length ? (
+      {loading ? (
+        <div className="gs-card gs-card-pad">
+          <p className="text-muted-foreground">Cargando productos...</p>
+        </div>
+      ) : products.length ? (
         <TableCard
           columns={[
             { key: "code", label: "Código" },

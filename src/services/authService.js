@@ -1,37 +1,11 @@
+import { apiClient } from "@/services/apiClient";
 import { STORAGE_KEYS } from "@/services/storage";
 
 export const MOCK_USERS = [
-  {
-    id: "usr-admin",
-    name: "Administrador",
-    email: "admin@grainstore.com",
-    password: "admin123",
-    role: "admin",
-  },
-  {
-    id: "usr-vendedor",
-    name: "Vendedor",
-    email: "vendedor@grainstore.com",
-    password: "vendedor123",
-    role: "vendedor",
-  },
-  {
-    id: "usr-contador",
-    name: "Contador",
-    email: "contador@grainstore.com",
-    password: "contador123",
-    role: "contador",
-  },
+  { id: "usr-admin", name: "Administrador", email: "admin@grainstore.com", password: "admin123", role: "admin" },
+  { id: "usr-vendedor", name: "Vendedor", email: "vendedor@grainstore.com", password: "vendedor123", role: "vendedor" },
+  { id: "usr-contador", name: "Contador", email: "contador@grainstore.com", password: "contador123", role: "contador" },
 ];
-
-function toSession(user) {
-  return {
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    role: user.role,
-  };
-}
 
 function readSession() {
   try {
@@ -50,20 +24,14 @@ function clearSession() {
   window.localStorage.removeItem(STORAGE_KEYS.session);
 }
 
-function login({ email, password, role }) {
-  const normalizedEmail = email.trim().toLowerCase();
-  const user = MOCK_USERS.find(
-    (candidate) =>
-      candidate.email === normalizedEmail &&
-      candidate.password === password &&
-      candidate.role === role,
-  );
+async function login({ email, password, role }) {
+  const { token, user } = await apiClient.post("/auth/login", {
+    email: email.trim().toLowerCase(),
+    password,
+    role,
+  });
 
-  if (!user) {
-    throw new Error("Credenciales invalidas para el rol seleccionado.");
-  }
-
-  const session = toSession(user);
+  const session = { ...user, token };
   saveSession(session);
   return session;
 }
@@ -72,10 +40,20 @@ function logout() {
   clearSession();
 }
 
+async function getProfile() {
+  return apiClient.get("/auth/me");
+}
+
+async function updateProfile(data) {
+  return apiClient.put("/auth/me", data);
+}
+
 export const authService = {
   clearSession,
+  getProfile,
   login,
   logout,
   readSession,
   saveSession,
+  updateProfile,
 };
