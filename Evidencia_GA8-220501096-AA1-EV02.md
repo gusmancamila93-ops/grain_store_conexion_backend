@@ -1,5 +1,14 @@
 # Evidencia GA8-220501096-AA1-EV02 — Módulos Integrados
 
+> **Documento histórico — fase anterior del proyecto.**
+> Este archivo corresponde a una versión anterior de la evidencia GA8-220501096-AA1-EV02,
+> elaborada antes del despliegue definitivo del sistema y antes de implementar las
+> pruebas automatizadas. Se conserva como registro histórico y no debe usarse como
+> referencia del estado actual del proyecto.
+>
+> La documentación oficial y vigente para la entrega de esta evidencia se encuentra en
+> [`GA8-220501096-AA1-EV02/`](GA8-220501096-AA1-EV02/README_EVIDENCIA.md).
+
 **Proyecto:** Grain Store — Sistema de gestión Full Stack para tienda de granos
 **Programa:** SENA — ADSO
 **Evidencia:** GA8-220501096-AA1-EV02 "Módulos integrados"

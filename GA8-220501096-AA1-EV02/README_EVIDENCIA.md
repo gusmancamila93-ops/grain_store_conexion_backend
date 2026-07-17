@@ -26,6 +26,23 @@
 | Health check | https://grain-store-conexion-backend.onrender.com/api/health |
 | Repositorio (GitHub) | https://github.com/gusmancamila93-ops/grain_store_conexion_backend |
 
+## Pruebas automatizadas
+
+Además de la verificación funcional manual contra producción, el repositorio
+incluye una suite de 105 pruebas automatizadas (unitarias e integración, backend y
+frontend). Se ejecutan con:
+
+```bash
+# Backend
+cd backend && npm run test
+
+# Frontend (desde la raíz del repositorio)
+npm run test
+```
+
+Detalle completo (herramientas, estructura y resultados) en la sección "Pruebas
+automatizadas" de [PRUEBAS_SISTEMA.md](PRUEBAS_SISTEMA.md).
+
 ## Metodología de verificación
 
 Toda la información de esta evidencia proviene de **verificaciones reales ejecutadas durante esta sesión**, no de documentación previa sin comprobar:

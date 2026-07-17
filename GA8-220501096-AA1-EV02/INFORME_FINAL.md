@@ -32,6 +32,31 @@ evidencia.
 - Confirmación de que el redeploy automático desde `main` funciona en ambas plataformas.
 - Confirmación de que `main` es la única rama del repositorio (ver punto 6) y, por lo tanto, la única rama desde la cual Render y Vercel pueden estar desplegando.
 
+## 2.1 Implementación de pruebas automatizadas
+
+Como refuerzo adicional de la evidencia, se agregó una suite de **pruebas
+automatizadas reales** (105 pruebas en total) que se ejecuta contra el código
+fuente del sistema, sin modificar su lógica ni su arquitectura:
+
+- **Validación individual de módulos (pruebas unitarias):** 38 en backend
+  (autenticación, JWT, validaciones con Zod, permisos por rol, cálculo de estado
+  de stock, cálculos financieros de reportes) y 25 en frontend (componentes UI,
+  el hook `useAuth`, utilidades de formato y la página de login), verificando
+  cada módulo de forma aislada con sus dependencias externas controladas.
+- **Validación de integración frontend-backend (pruebas de integración):** 30 en
+  backend, ejercitando la app real de Express (rutas → middlewares →
+  controladores → servicios) contra los 9 grupos de endpoints con `supertest`; y
+  12 en frontend, renderizando la aplicación React real (`App` + `AuthProvider` +
+  `react-router`) con las respuestas de la API simuladas, cubriendo login,
+  logout, protección de rutas por rol y carga de datos del dashboard.
+- **Resultados obtenidos:** 105/105 pruebas exitosas (68 backend + 37 frontend).
+  El detalle completo (herramientas, estructura, comandos y resultados) está en
+  la sección "Pruebas automatizadas" de [PRUEBAS_SISTEMA.md](PRUEBAS_SISTEMA.md).
+- **Nota metodológica:** dado que el entorno de esta evidencia no cuenta con un
+  servidor MySQL disponible, las pruebas de backend sustituyen únicamente la
+  capa de acceso a datos (Prisma) por un doble de prueba, manteniendo intacta
+  toda la lógica real de negocio, validación y autorización.
+
 ## 3. Documentos creados
 
 Dentro de `GA8-220501096-AA1-EV02/`:
@@ -50,6 +75,9 @@ Dentro de `GA8-220501096-AA1-EV02/`:
 - **`README.md`** (raíz): actualizado con la arquitectura de despliegue, las URLs públicas y la estructura completa del sistema.
 - **`.gitignore`** (raíz): se agregó `.claude/` para excluir permanentemente la configuración del entorno de asistencia de IA.
 - **`CONTROL_VERSIONES.md`**: actualizado en la revisión final (punto 6) para reflejar la eliminación de la rama de feature y el análisis de `.claude`/`.vscode`.
+- **`PRUEBAS_SISTEMA.md`**: se agregó la sección "Pruebas automatizadas" (ver punto 2.1) con las 105 pruebas unitarias e integración implementadas.
+- **`backend/package.json`** y **`package.json`** (raíz): se agregaron los scripts `test` y `test:watch`, y las dependencias de desarrollo `vitest`, `supertest` (backend) y `vitest`, `@testing-library/react`, `@testing-library/jest-dom`, `@testing-library/user-event`, `jsdom` (frontend).
+- **`vite.config.js`**: se agregó el bloque `test` de Vitest (entorno `jsdom`, archivo de setup), reutilizando el alias `@` ya existente.
 
 ## 5. Problemas encontrados
 
@@ -80,7 +108,7 @@ Se realizó una segunda ronda de revisión, posterior al cierre inicial de esta 
 | 2. Entregar los archivos ejecutables del sistema | [EJECUCION_SISTEMA.md](EJECUCION_SISTEMA.md) | ✅ Cumplido | Documenta los componentes ejecutables, requisitos, dependencias, variables de entorno (sin secretos), comandos y arquitectura del despliegue real |
 | 3. Entregar las URLs donde se encuentran desplegados los módulos | [URLS_DESPLIEGUE.md](URLS_DESPLIEGUE.md) | ✅ Cumplido | Las 3 URLs públicas (frontend, backend, health check) más el repositorio, con la función de cada una y verificadas activas dos veces |
 | 4. Entregar la documentación por módulo y componente, registrando datos de entrada y salida | [DOCUMENTACION_MODULOS.md](DOCUMENTACION_MODULOS.md) | ✅ Cumplido | 9 módulos documentados con objetivo, componentes, endpoints, datos de entrada/salida, validaciones, flujo y observaciones, basados en el código real |
-| 5. Informar las pruebas realizadas para cada módulo y su resultado | [PRUEBAS_SISTEMA.md](PRUEBAS_SISTEMA.md) | ✅ Cumplido | 24 casos de prueba reales ejecutados contra producción, con datos utilizados, resultado esperado/obtenido y estado; incluye el problema encontrado y su corrección documentada |
+| 5. Informar las pruebas realizadas para cada módulo y su resultado | [PRUEBAS_SISTEMA.md](PRUEBAS_SISTEMA.md) | ✅ Cumplido | 24 casos de prueba funcionales reales ejecutados contra producción, más 105 pruebas automatizadas (unitarias e integración, backend y frontend); incluye el problema encontrado y su corrección documentada |
 
 ### Confirmación expresa
 

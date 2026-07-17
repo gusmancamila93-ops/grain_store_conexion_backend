@@ -1,5 +1,14 @@
 # Documentación detallada por módulo — Grain Store
 
+> **Documento histórico — fase anterior del proyecto.**
+> Este archivo corresponde a una versión anterior de la evidencia GA8-220501096-AA1-EV02,
+> elaborada antes del despliegue definitivo del sistema y antes de implementar las
+> pruebas automatizadas. Se conserva como registro histórico y no debe usarse como
+> referencia del estado actual del proyecto.
+>
+> La documentación oficial y vigente para la entrega de esta evidencia se encuentra en
+> [`GA8-220501096-AA1-EV02/`](../GA8-220501096-AA1-EV02/README_EVIDENCIA.md).
+
 Ficha completa de cada módulo del sistema. Para el detalle exacto de cada endpoint
 (cuerpos de petición, respuestas de ejemplo, códigos de error), ver
 [`../API_DOCUMENTATION.md`](../API_DOCUMENTATION.md).
