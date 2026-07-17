@@ -130,6 +130,8 @@ function StatusBadge({ status }) {
 function ProductsPage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [reloadToken, setReloadToken] = useState(0);
   const [createForm, setCreateForm] = useState(EMPTY_FORM);
   const [editingProduct, setEditingProduct] = useState(null);
   const [search, setSearch] = useState("");
@@ -138,15 +140,24 @@ function ProductsPage() {
 
   useEffect(() => {
     let active = true;
-    productosService.readProducts().then((data) => {
-      if (!active) return;
-      setProducts(data);
-      setLoading(false);
-    });
+    setLoading(true);
+    setError(null);
+    productosService
+      .readProducts()
+      .then((data) => {
+        if (!active) return;
+        setProducts(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        if (!active) return;
+        setError(err.message);
+        setLoading(false);
+      });
     return () => {
       active = false;
     };
-  }, []);
+  }, [reloadToken]);
 
   const stats = useMemo(() => {
     const normal = products.filter((product) => productosService.getStatus(product) === "Normal").length;
@@ -281,7 +292,14 @@ function ProductsPage() {
 
       </div>
 
-      {loading ? (
+      {error ? (
+        <div className="gs-card gs-card-pad">
+          <p className="text-muted-foreground">No se pudieron cargar los productos: {error}</p>
+          <button className="gs-btn gs-btn-primary mt-4" onClick={() => setReloadToken((n) => n + 1)} type="button">
+            Reintentar
+          </button>
+        </div>
+      ) : loading ? (
         <div className="gs-card gs-card-pad">
           <p className="text-muted-foreground">Cargando productos...</p>
         </div>

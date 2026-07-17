@@ -14,16 +14,37 @@ function formatReportValue(stat) {
 
 function ReportsPage() {
   const [reports, setReports] = useState(null);
+  const [error, setError] = useState(null);
+  const [reloadToken, setReloadToken] = useState(0);
 
   useEffect(() => {
     let active = true;
-    reportesService.getReports().then((data) => {
-      if (active) setReports(data);
-    });
+    setError(null);
+    reportesService
+      .getReports()
+      .then((data) => {
+        if (active) setReports(data);
+      })
+      .catch((err) => {
+        if (active) setError(err.message);
+      });
     return () => {
       active = false;
     };
-  }, []);
+  }, [reloadToken]);
+
+  if (error) {
+    return (
+      <section className="gs-module-page">
+        <div className="gs-card gs-card-pad">
+          <p className="text-muted-foreground">No se pudieron cargar los reportes: {error}</p>
+          <button className="gs-btn gs-btn-primary mt-4" onClick={() => setReloadToken((n) => n + 1)} type="button">
+            Reintentar
+          </button>
+        </div>
+      </section>
+    );
+  }
 
   if (!reports) {
     return (

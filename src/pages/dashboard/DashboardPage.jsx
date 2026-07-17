@@ -62,16 +62,37 @@ function DashboardBars({ data, dual = false }) {
 function DashboardPage() {
   const { role } = useOutletContext();
   const [dashboard, setDashboard] = useState(null);
+  const [error, setError] = useState(null);
+  const [reloadToken, setReloadToken] = useState(0);
 
   useEffect(() => {
     let active = true;
-    dashboardService.getDashboard().then((data) => {
-      if (active) setDashboard(data);
-    });
+    setError(null);
+    dashboardService
+      .getDashboard()
+      .then((data) => {
+        if (active) setDashboard(data);
+      })
+      .catch((err) => {
+        if (active) setError(err.message);
+      });
     return () => {
       active = false;
     };
-  }, [role]);
+  }, [role, reloadToken]);
+
+  if (error) {
+    return (
+      <section className="gs-dashboard">
+        <div className="gs-card gs-card-pad">
+          <p className="text-muted-foreground">No se pudo cargar el panel: {error}</p>
+          <button className="gs-btn gs-btn-primary mt-4" onClick={() => setReloadToken((n) => n + 1)} type="button">
+            Reintentar
+          </button>
+        </div>
+      </section>
+    );
+  }
 
   if (!dashboard) {
     return (

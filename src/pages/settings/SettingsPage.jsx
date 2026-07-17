@@ -115,6 +115,8 @@ function SettingsPage() {
   const [activeTab, setActiveTab] = useState(tabs[0]?.id ?? "perfil");
 
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [reloadToken, setReloadToken] = useState(0);
   const [profileDraft, setProfileDraft] = useState(null);
   const [savedProfile, setSavedProfile] = useState(null);
   const [storeDraft, setStoreDraft] = useState(null);
@@ -127,27 +129,35 @@ function SettingsPage() {
   useEffect(() => {
     let active = true;
     const isAdmin = role === "admin";
+    setLoading(true);
+    setError(null);
 
     Promise.all([
       authService.getProfile(),
       configService.getTienda(),
       configService.getSistema(),
       isAdmin ? usuariosService.readUsers() : Promise.resolve([]),
-    ]).then(([profile, tienda, sistema, usuarios]) => {
-      if (!active) return;
-      setProfileDraft(profile);
-      setSavedProfile(profile);
-      setStoreDraft(tienda);
-      setSavedStore(tienda);
-      setSystem(sistema);
-      setUsers(usuarios);
-      setLoading(false);
-    });
+    ])
+      .then(([profile, tienda, sistema, usuarios]) => {
+        if (!active) return;
+        setProfileDraft(profile);
+        setSavedProfile(profile);
+        setStoreDraft(tienda);
+        setSavedStore(tienda);
+        setSystem(sistema);
+        setUsers(usuarios);
+        setLoading(false);
+      })
+      .catch((err) => {
+        if (!active) return;
+        setError(err.message);
+        setLoading(false);
+      });
 
     return () => {
       active = false;
     };
-  }, [role]);
+  }, [role, reloadToken]);
 
   function updateProfileDraft(_group, key, value) {
     setProfileDraft((current) => ({ ...current, [key]: value }));
@@ -351,7 +361,14 @@ function SettingsPage() {
         </div>
       </div>
       <Tabs activeTab={activeTab} onChange={setActiveTab} tabs={tabs} />
-      {loading ? (
+      {error ? (
+        <div className="gs-card gs-card-pad">
+          <p className="text-muted-foreground">No se pudo cargar la configuración: {error}</p>
+          <button className="gs-btn gs-btn-primary mt-4" onClick={() => setReloadToken((n) => n + 1)} type="button">
+            Reintentar
+          </button>
+        </div>
+      ) : loading ? (
         <div className="gs-card gs-card-pad">
           <p className="text-muted-foreground">Cargando configuración...</p>
         </div>

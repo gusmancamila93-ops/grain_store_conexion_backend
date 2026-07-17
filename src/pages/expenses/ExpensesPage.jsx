@@ -57,6 +57,8 @@ function ExpenseForm({ form, onChange }) {
 function ExpensesPage() {
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [reloadToken, setReloadToken] = useState(0);
   const [form, setForm] = useState(EMPTY_FORM);
   const [editingExpense, setEditingExpense] = useState(null);
   const [search, setSearch] = useState("");
@@ -64,15 +66,24 @@ function ExpensesPage() {
 
   useEffect(() => {
     let active = true;
-    egresosService.readExpenses().then((data) => {
-      if (!active) return;
-      setExpenses(data);
-      setLoading(false);
-    });
+    setLoading(true);
+    setError(null);
+    egresosService
+      .readExpenses()
+      .then((data) => {
+        if (!active) return;
+        setExpenses(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        if (!active) return;
+        setError(err.message);
+        setLoading(false);
+      });
     return () => {
       active = false;
     };
-  }, []);
+  }, [reloadToken]);
 
   const stats = useMemo(() => {
     const total = expenses.reduce((sum, expense) => sum + Number(expense.value), 0);
@@ -173,7 +184,14 @@ function ExpensesPage() {
         </div>
       </div>
 
-      {loading ? (
+      {error ? (
+        <div className="gs-card gs-card-pad">
+          <p className="text-muted-foreground">No se pudieron cargar los egresos: {error}</p>
+          <button className="gs-btn gs-btn-primary mt-4" onClick={() => setReloadToken((n) => n + 1)} type="button">
+            Reintentar
+          </button>
+        </div>
+      ) : loading ? (
         <div className="gs-card gs-card-pad">
           <p className="text-muted-foreground">Cargando egresos...</p>
         </div>
