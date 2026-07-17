@@ -5,15 +5,21 @@ lenteja, etc.), con control de clientes, inventario, ventas, egresos y reportes
 financieros, con acceso diferenciado por rol (**Administrador**, **Vendedor**,
 **Contador**).
 
-Proyecto académico desarrollado para el SENA como evidencia de la competencia
+Proyecto académico desarrollado para el SENA como evidencia de las competencias
 **GA8-220501096-AA1-EV01 — Desarrollar software a partir de la integración de sus
-módulos y componentes**. Partió de un frontend React ya funcional (con datos
-simulados en `localStorage`) al que se le construyó un backend real (Node.js +
-Express + Prisma + MySQL) y se integró sin alterar el diseño ni la experiencia de
-usuario existente.
+módulos y componentes** y **GA8-220501096-AA1-EV02 — Módulos integrados**. Partió de
+un frontend React ya funcional (con datos simulados en `localStorage`) al que se le
+construyó un backend real (Node.js + Express + Prisma + MySQL), se integró sin
+alterar el diseño ni la experiencia de usuario existente, y finalmente se **desplegó
+en producción** (frontend en Vercel, backend en Render, base de datos en Aiven).
+
+**El sistema está en vivo:** https://grain-store-conexion-backend.vercel.app
+(ver la sección [Despliegue](#despliegue) para el detalle completo).
 
 > Este README documenta el sistema completo (frontend + backend). Para el detalle
-> específico del backend, ver [README_BACKEND.md](README_BACKEND.md).
+> específico del backend, ver [README_BACKEND.md](README_BACKEND.md). Para la
+> evidencia formal de módulos integrados y despliegue, ver
+> [GA8-220501096-AA1-EV02/](GA8-220501096-AA1-EV02/).
 
 ---
 
@@ -62,6 +68,7 @@ usuario existente.
 El sistema está dividido en dos aplicaciones independientes dentro del mismo
 repositorio:
 
+**En desarrollo local:**
 ```
 Usuario ── navegador ──▶ Frontend (React + Vite, puerto 5173)
                               │
@@ -71,7 +78,18 @@ Usuario ── navegador ──▶ Frontend (React + Vite, puerto 5173)
                               │
                               │  Prisma Client
                               ▼
-                         MySQL (grain_store_db)
+                         MySQL (grain_store_db, local)
+```
+
+**En producción** (arquitectura lógica del despliegue real — detalle completo en [Despliegue](#despliegue)):
+```
+┌─────────────────────────┐        ┌────────────────────────────┐        ┌───────────────────┐
+│   Vercel (Frontend)      │        │   Render (Backend)          │        │   Aiven (MySQL)    │
+│   React + Vite            │──────▶│   Node.js + Express          │──────▶│   Base de datos      │
+│   build estático, CDN     │ HTTPS  │   Root Directory: backend/   │ Prisma │   administrada        │
+└─────────────────────────┘        └────────────────────────────┘        └───────────────────┘
+ grain-store-conexion-               grain-store-conexion-
+ backend.vercel.app                  backend.onrender.com
 ```
 
 - **Frontend:** SPA en React, con capas de páginas → componentes compartidos →
@@ -123,12 +141,21 @@ grain_stote/
 │   ├── routes/                     # Definición de rutas, RoleGuard, configuración por rol
 │   ├── services/                   # Capa de acceso a la API (apiClient + un servicio por entidad)
 │   └── utils/                      # Formateadores (moneda, fecha)
+├── GA8-220501096-AA1-EV02/          # Evidencia de módulos integrados y despliegue
+│   ├── README_EVIDENCIA.md
+│   ├── DOCUMENTACION_MODULOS.md
+│   ├── PRUEBAS_SISTEMA.md
+│   ├── URLS_DESPLIEGUE.md
+│   ├── EJECUCION_SISTEMA.md
+│   ├── CONTROL_VERSIONES.md
+│   └── INFORME_FINAL.md
 ├── ANALISIS_BACKEND.md              # Fase 1 — Análisis del frontend original
 ├── DISENO_BACKEND.md                # Fase 2 — Diseño de arquitectura del backend
 ├── README_BACKEND.md                # Documentación específica del backend
 ├── API_DOCUMENTATION.md             # Referencia completa de endpoints
 ├── MANUAL_INSTALACION.md            # Guía de instalación paso a paso
 ├── DOCUMENTACION_TECNICA.md         # Decisiones técnicas, seguridad, limitaciones
+├── vercel.json                      # Configuración de despliegue del frontend en Vercel (rewrite de SPA)
 ├── package.json                     # Dependencias del frontend
 └── vite.config.js
 ```
@@ -211,7 +238,7 @@ cp .env.example .env       # define VITE_API_URL
 
 ---
 
-## Ejecución
+## Ejecución local
 
 Backend y frontend se ejecutan como dos procesos independientes (dos terminales).
 
@@ -234,6 +261,57 @@ Con ambos corriendo, abre `http://localhost:5173/login` e inicia sesión con
 cualquiera de los usuarios de prueba del seed (ver [README_BACKEND.md](README_BACKEND.md#usuarios-de-prueba-seed)).
 
 ---
+
+## Despliegue
+
+El sistema está desplegado y verificado funcionando en producción, en tres
+plataformas distintas — una por componente:
+
+| Componente | Plataforma | Configuración real |
+|---|---|---|
+| Frontend | **Vercel** | Root Directory `.` (raíz del repo) · Build Command `npm run build` (default de Vite) · Output Directory `dist` |
+| Backend | **Render** | Root Directory `backend` · Build Command `npm install && npx prisma generate` · Start Command `npx prisma migrate deploy && npm start` |
+| Base de datos | **Aiven** | MySQL administrado, accesible solo desde el backend (no se expone públicamente) |
+
+Ambos despliegues (Vercel y Render) se redespliegan **automáticamente** ante cada
+push a la rama `main` del repositorio.
+
+**Variables de entorno de producción** (nombres, sin valores — ver [Variables de entorno](#variables-de-entorno) más abajo para el detalle completo):
+- Render: `DATABASE_URL`, `JWT_SECRET`, `NODE_ENV=production`, `FRONTEND_URL` (apuntando al dominio de Vercel).
+- Vercel: `VITE_API_URL` (apuntando al dominio de Render + `/api`).
+
+**Nota técnica real, encontrada y corregida durante el despliegue:** al desplegar una
+SPA de React Router en Vercel, es necesario un `vercel.json` con un *rewrite* de
+`/(.*)` → `/index.html` para que las rutas internas (ej. `/admin/dashboard`) no
+devuelvan `404` al navegar directo o refrescar la página — sin este archivo, Vercel
+busca un archivo físico en esa ruta y no lo encuentra. Este ajuste ya está aplicado
+y verificado (ver [`GA8-220501096-AA1-EV02/PRUEBAS_SISTEMA.md`](GA8-220501096-AA1-EV02/PRUEBAS_SISTEMA.md) para el detalle de cómo se detectó y confirmó la corrección).
+
+Guía completa de configuración de despliegue en
+[`GA8-220501096-AA1-EV02/EJECUCION_SISTEMA.md`](GA8-220501096-AA1-EV02/EJECUCION_SISTEMA.md).
+
+## URLs públicas
+
+| Componente | URL |
+|---|---|
+| **Frontend** (aplicación completa) | https://grain-store-conexion-backend.vercel.app |
+| **Backend / API** | https://grain-store-conexion-backend.onrender.com |
+| **Health check** del backend | https://grain-store-conexion-backend.onrender.com/api/health |
+| **Repositorio** | https://github.com/gusmancamila93-ops/grain_store_conexion_backend |
+
+Puedes iniciar sesión directamente en el frontend desplegado con cualquiera de los
+usuarios de prueba (ver [README_BACKEND.md](README_BACKEND.md#usuarios-de-prueba-seed)).
+Detalle de la función de cada URL en
+[`GA8-220501096-AA1-EV02/URLS_DESPLIEGUE.md`](GA8-220501096-AA1-EV02/URLS_DESPLIEGUE.md).
+
+---
+
+## Configuración
+
+La configuración del sistema se maneja íntegramente por **variables de entorno**
+(ver la sección siguiente) — no hay archivos de configuración adicionales que editar
+a mano. En local se definen en los archivos `.env` de cada aplicación; en producción
+se definen en el panel de Render (backend) y de Vercel (frontend).
 
 ## Variables de entorno
 
@@ -467,9 +545,15 @@ token*), en [DOCUMENTACION_TECNICA.md](DOCUMENTACION_TECNICA.md).
 
 ## Evidencia SENA
 
-Este proyecto fue desarrollado para cumplir la evidencia
-**GA8-220501096-AA1-EV01 — Desarrollar software a partir de la integración de sus
-módulos y componentes**, cumpliendo:
+Este proyecto fue desarrollado para cumplir dos evidencias del programa ADSO:
+
+- **GA8-220501096-AA1-EV01 — Desarrollar software a partir de la integración de sus
+  módulos y componentes.**
+- **GA8-220501096-AA1-EV02 — Módulos integrados**, con el sistema ya desplegado en
+  producción. Documentación completa, con pruebas reales ejecutadas contra las URLs
+  públicas, en [`GA8-220501096-AA1-EV02/`](GA8-220501096-AA1-EV02/).
+
+Ambas evidencias comparten el mismo cumplimiento base:
 
 - ✔ **Desarrollo modular:** cada entidad de negocio (auth, usuarios, clientes,
   productos, ventas, egresos, dashboard, reportes, configuración) es un paquete
