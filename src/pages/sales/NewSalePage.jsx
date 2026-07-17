@@ -22,12 +22,16 @@ function NewSalePage() {
   const [customers, setCustomers] = useState([]);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [reloadToken, setReloadToken] = useState(0);
   const [form, setForm] = useState(EMPTY_FORM);
 
   useEffect(() => {
     let active = true;
-    Promise.all([clientesService.readCustomers(), productosService.readProducts()]).then(
-      ([customersData, productsData]) => {
+    setLoading(true);
+    setError(null);
+    Promise.all([clientesService.readCustomers(), productosService.readProducts()])
+      .then(([customersData, productsData]) => {
         if (!active) return;
         setCustomers(customersData);
         setProducts(productsData);
@@ -38,12 +42,16 @@ function NewSalePage() {
           unitPrice: productsData[0]?.price ?? 0,
         }));
         setLoading(false);
-      },
-    );
+      })
+      .catch((err) => {
+        if (!active) return;
+        setError(err.message);
+        setLoading(false);
+      });
     return () => {
       active = false;
     };
-  }, []);
+  }, [reloadToken]);
 
   function updateForm(event) {
     const { name, value } = event.target;
@@ -77,6 +85,19 @@ function NewSalePage() {
       ],
     });
     navigate(`/${role}/ventas`, { replace: true });
+  }
+
+  if (error) {
+    return (
+      <section className="gs-module-page">
+        <div className="gs-card gs-card-pad">
+          <p className="text-muted-foreground">No se pudo cargar el formulario: {error}</p>
+          <button className="gs-btn gs-btn-primary mt-4" onClick={() => setReloadToken((n) => n + 1)} type="button">
+            Reintentar
+          </button>
+        </div>
+      </section>
+    );
   }
 
   if (loading) {

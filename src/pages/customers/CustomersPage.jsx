@@ -111,6 +111,8 @@ function CustomerStatus({ status }) {
 function CustomersPage() {
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [reloadToken, setReloadToken] = useState(0);
   const [createForm, setCreateForm] = useState(EMPTY_FORM);
   const [editingCustomer, setEditingCustomer] = useState(null);
   const [search, setSearch] = useState("");
@@ -119,15 +121,24 @@ function CustomersPage() {
 
   useEffect(() => {
     let active = true;
-    clientesService.readCustomers().then((data) => {
-      if (!active) return;
-      setCustomers(data);
-      setLoading(false);
-    });
+    setLoading(true);
+    setError(null);
+    clientesService
+      .readCustomers()
+      .then((data) => {
+        if (!active) return;
+        setCustomers(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        if (!active) return;
+        setError(err.message);
+        setLoading(false);
+      });
     return () => {
       active = false;
     };
-  }, []);
+  }, [reloadToken]);
 
   const stats = useMemo(() => {
     const active = customers.filter((customer) => customer.status === "Activo").length;
@@ -255,7 +266,14 @@ function CustomersPage() {
         </div>
       </div>
 
-      {loading ? (
+      {error ? (
+        <div className="gs-card gs-card-pad">
+          <p className="text-muted-foreground">No se pudieron cargar los clientes: {error}</p>
+          <button className="gs-btn gs-btn-primary mt-4" onClick={() => setReloadToken((n) => n + 1)} type="button">
+            Reintentar
+          </button>
+        </div>
+      ) : loading ? (
         <div className="gs-card gs-card-pad">
           <p className="text-muted-foreground">Cargando clientes...</p>
         </div>

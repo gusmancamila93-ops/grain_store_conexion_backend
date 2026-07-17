@@ -19,21 +19,32 @@ function SaleStatus({ status }) {
 function SalesPage() {
   const [sales, setSales] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [reloadToken, setReloadToken] = useState(0);
   const [selectedSale, setSelectedSale] = useState(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("Todos");
 
   useEffect(() => {
     let active = true;
-    ventasService.readSales().then((data) => {
-      if (!active) return;
-      setSales(data);
-      setLoading(false);
-    });
+    setLoading(true);
+    setError(null);
+    ventasService
+      .readSales()
+      .then((data) => {
+        if (!active) return;
+        setSales(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        if (!active) return;
+        setError(err.message);
+        setLoading(false);
+      });
     return () => {
       active = false;
     };
-  }, []);
+  }, [reloadToken]);
 
   const stats = useMemo(() => {
     const paidSales = sales.filter((sale) => sale.status === "Pagada");
@@ -105,7 +116,14 @@ function SalesPage() {
         </div>
       </div>
 
-      {loading ? (
+      {error ? (
+        <div className="gs-card gs-card-pad">
+          <p className="text-muted-foreground">No se pudieron cargar las ventas: {error}</p>
+          <button className="gs-btn gs-btn-primary mt-4" onClick={() => setReloadToken((n) => n + 1)} type="button">
+            Reintentar
+          </button>
+        </div>
+      ) : loading ? (
         <div className="gs-card gs-card-pad">
           <p className="text-muted-foreground">Cargando ventas...</p>
         </div>
