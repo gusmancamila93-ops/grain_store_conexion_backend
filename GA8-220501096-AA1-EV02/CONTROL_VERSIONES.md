@@ -14,15 +14,26 @@ Repositorio **público**, verificado accesible sin autenticación.
 
 ## Estrategia de ramas utilizada
 
-El desarrollo se hizo mayoritariamente de forma directa sobre `main` durante las fases de análisis, diseño, implementación del backend, integración y documentación inicial. Para el conjunto de cambios más reciente (manejo de errores de carga + evidencia académica + configuración de despliegue) se usó una **rama de feature con Pull Request**:
+El desarrollo se hizo mayoritariamente de forma directa sobre `main` durante las fases de análisis, diseño, implementación del backend, integración y documentación inicial. Para los dos bloques de cambios más recientes (manejo de errores + evidencia académica + despliegue; y, después, pruebas automatizadas) se usó **una rama de feature con Pull Request en cada caso**, siguiendo el mismo patrón:
+
+### Ciclo 1 — PR #1: manejo de errores de carga + evidencia académica + despliegue
 
 1. Se creó la rama `feature/manejo-errores-y-evidencia-ev02` a partir de `main`.
 2. Se realizaron los commits de esa etapa sobre esa rama.
 3. Se abrió el Pull Request #1 (`feature/manejo-errores-y-evidencia-ev02` → `main`).
 4. Tras verificar el despliegue y detectar/corregir el problema de rutas (ver [PRUEBAS_SISTEMA.md](PRUEBAS_SISTEMA.md)), el PR se fusionó a `main` mediante *squash merge*, lo que disparó el redeploy automático en Render y Vercel.
-5. **Limpieza final:** una vez confirmado (con `git diff main feature/manejo-errores-y-evidencia-ev02 --stat`, sin salida — es decir, sin ninguna diferencia de contenido) que el *squash merge* había capturado el 100% de los cambios de la rama, se eliminó `feature/manejo-errores-y-evidencia-ev02` tanto localmente (`git branch -D`) como en el remoto (`git push origin --delete`), dejando **`main` como única rama del repositorio**.
+5. **Limpieza:** una vez confirmado (con `git diff main feature/manejo-errores-y-evidencia-ev02 --stat`, sin salida — es decir, sin ninguna diferencia de contenido) que el *squash merge* había capturado el 100% de los cambios de la rama, se eliminó `feature/manejo-errores-y-evidencia-ev02` tanto localmente (`git branch -D`) como en el remoto (`git push origin --delete`), dejando **`main` como única rama del repositorio**.
 
-Esta combinación (commits directos a `main` en las fases iniciales + un Pull Request para el bloque final de cambios, cerrado con la eliminación de la rama de feature) refleja el flujo real de trabajo de esta evidencia, sin inventar una estrategia de ramas más compleja de la que efectivamente se usó.
+### Ciclo 2 — PR #2: pruebas automatizadas y clasificación de documentación histórica
+
+1. Se creó la rama `feature/pruebas-automatizadas-ev02` a partir de `main` (ya con el commit `ea067df`, posterior al cierre inicial de esta evidencia).
+2. Se implementaron y ejecutaron 105 pruebas automatizadas reales (unitarias e integración, backend y frontend — ver [PRUEBAS_SISTEMA.md](PRUEBAS_SISTEMA.md)) y se marcó como histórica la documentación de una fase anterior de esta misma evidencia, todo en un único commit sobre esa rama.
+3. Se abrió el Pull Request #2 (`feature/pruebas-automatizadas-ev02` → `main`); GitHub confirmó `mergeable_state: clean` (sin conflictos con `main`).
+4. El PR se fusionó a `main` mediante *squash merge* (commit `32dc8ca`), consistente con el método usado en el PR #1.
+5. **Limpieza:** se eliminó `feature/pruebas-automatizadas-ev02` tanto localmente (`git branch -d`) como en el remoto (`git push origin --delete`), verificando después con `git branch -a` y `git ls-remote --heads origin` que **`main` volvió a quedar como única rama del repositorio**.
+6. Tras la fusión se reverificó que el sistema sigue compilando (`npm run build`) y que las 105 pruebas automatizadas continúan aprobando sobre `main`.
+
+Esta combinación (commits directos a `main` en las fases iniciales + un Pull Request por cada bloque de cambios posterior, cerrado en ambos casos con la eliminación de la rama de feature) refleja el flujo real de trabajo de esta evidencia, sin inventar una estrategia de ramas más compleja de la que efectivamente se usó.
 
 ## Commits relevantes relacionados con esta evidencia
 
@@ -39,6 +50,8 @@ Esta combinación (commits directos a `main` en las fases iniciales + un Pull Re
 | `cf17258` | Documentación final del backend (Fase 5) |
 | `3f64224` | README profesional del sistema completo |
 | `3ab4a7c` | **Merge del PR #1**: manejo de errores de carga + evidencia GA8-220501096-AA1-EV02 (incluye `vercel.json` y la configuración de `VITE_API_URL` hacia Render) |
+| `ea067df` | Evidencia GA8-220501096-AA1-EV02 y limpieza del repositorio para la entrega (commit directo a `main`, cierre de la primera ronda de la evidencia) |
+| `32dc8ca` | **Merge del PR #2**: suite de 105 pruebas automatizadas (backend y frontend) y clasificación de documentación histórica de esta evidencia |
 
 ## Confirmación: sin credenciales sensibles en Git
 
