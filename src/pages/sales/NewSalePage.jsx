@@ -25,6 +25,7 @@ function NewSalePage() {
   const [error, setError] = useState(null);
   const [reloadToken, setReloadToken] = useState(0);
   const [form, setForm] = useState(EMPTY_FORM);
+  const [submitError, setSubmitError] = useState(null);
 
   useEffect(() => {
     let active = true;
@@ -71,20 +72,25 @@ function NewSalePage() {
 
   async function handleSubmit(event) {
     event.preventDefault();
-    await ventasService.createSale({
-      customerId: Number(form.customerId),
-      date: form.date,
-      paymentMethod: form.paymentMethod,
-      status: form.status,
-      items: [
-        {
-          productId: Number(form.productId),
-          quantity: Number(form.quantity),
-          unitPrice: Number(form.unitPrice),
-        },
-      ],
-    });
-    navigate(`/${role}/ventas`, { replace: true });
+    setSubmitError(null);
+    try {
+      await ventasService.createSale({
+        customerId: Number(form.customerId),
+        date: form.date,
+        paymentMethod: form.paymentMethod,
+        status: form.status,
+        items: [
+          {
+            productId: Number(form.productId),
+            quantity: Number(form.quantity),
+            unitPrice: Number(form.unitPrice),
+          },
+        ],
+      });
+      navigate(`/${role}/ventas`, { replace: true });
+    } catch (err) {
+      setSubmitError(err.message);
+    }
   }
 
   if (error) {
@@ -171,6 +177,7 @@ function NewSalePage() {
               <strong>{new Intl.NumberFormat("es-CO", { currency: "COP", maximumFractionDigits: 0, style: "currency" }).format(Number(form.quantity) * Number(form.unitPrice))}</strong>
             </div>
           </div>
+          {submitError && <p className="text-sm font-medium text-destructive" role="alert">{submitError}</p>}
           <div className="gs-form-actions">
             <button className="gs-btn gs-btn-primary" type="submit">
               <Save size={17} /> Guardar Venta
